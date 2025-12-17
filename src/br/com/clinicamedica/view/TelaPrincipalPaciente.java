@@ -1,12 +1,14 @@
 package br.com.clinicamedica.view;
 
 import br.com.clinicamedica.entities.*;
+import br.com.clinicamedica.service.DadosService;
 import br.com.clinicamedica.service.SistemaService;
 import br.com.clinicamedica.exceptions.ValidacaoException;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -16,6 +18,7 @@ public class TelaPrincipalPaciente extends JFrame {
     private SistemaService service;
     private JTable tabelaMedicos;
     private DefaultTableModel modelo;
+    private JFormattedTextField txtData;
 
     public TelaPrincipalPaciente(Paciente paciente, SistemaService service, List<Medico> todosMedicos) {
         this.pacienteLogado = paciente;
@@ -66,6 +69,25 @@ public class TelaPrincipalPaciente extends JFrame {
         JButton btnCancelar = new JButton("Cancelar Agendamento"); // Operação 4
         JButton btnAvaliar = new JButton("Avaliar Médico"); // Operação 6
 
+        // SELECIONAR DATA
+        try {
+            MaskFormatter mascara = new MaskFormatter("##/##/####");
+            mascara.setPlaceholderCharacter('_');
+
+            txtData = new JFormattedTextField(mascara);
+            txtData.setPreferredSize(new Dimension(100, 25));
+
+            JPanel painelData = new JPanel(new FlowLayout());
+            painelData.add(new JLabel("Data (DD/MM/AAAA):"));
+            painelData.add(txtData);
+
+            // Adicione ao seu painel de ações
+            painelAcoes.add(painelData);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         painelAcoes.add(btnAgendar);
         painelAcoes.add(btnCancelar);
         painelAcoes.add(btnAvaliar);
@@ -79,16 +101,38 @@ public class TelaPrincipalPaciente extends JFrame {
 
         btnFiltrar.addActionListener(e -> carregarTabela(todosMedicos, txtBusca.getText()));
 
+
+
         btnAgendar.addActionListener(e -> {
-            int linha = tabelaMedicos.getSelectedRow();
-            if (linha != -1) {
-                try {
-                    String loginMed = todosMedicos.get(linha).getLogin();
-                    service.agendarConsulta(loginMed, pacienteLogado.getLogin(), LocalDate.now()); // Lógica de agendamento e lista de espera [cite: 2]
-                    JOptionPane.showMessageDialog(this, "Processado com sucesso!");
-                } catch (ValidacaoException ex) {
-                    JOptionPane.showMessageDialog(this, ex.getMessage());
+            try {
+                // Pega o texto do campo (ex: 17/12/2025)
+                String dataTexto = txtData.getText();
+
+                // Converte para LocalDate
+                java.time.format.DateTimeFormatter formatador = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                java.time.LocalDate dataLocal = java.time.LocalDate.parse(dataTexto, formatador);
+
+                // Pega o médico selecionado na tabela
+                int linha = tabelaMedicos.getSelectedRow();
+                if (linha == -1) {
+                    JOptionPane.showMessageDialog(this, "Selecione um médico!");
+                    return;
                 }
+                String loginMedico = (String) modelo.getValueAt(linha, 0);
+
+                // Chama o serviço
+                service.agendarConsulta(loginMedico, pacienteLogado.getLogin(), dataLocal);
+
+                // Salva tudo nos arquivos
+                DadosService.salvarTudo(service.getMedicos(), service.getPacientes(),
+                        service.getAgendamentos(), service.getAvaliacoes());
+
+                JOptionPane.showMessageDialog(this, "Consulta agendada!");
+
+            } catch (java.time.format.DateTimeParseException ex) {
+                JOptionPane.showMessageDialog(this, "Data inválida! Digite no formato dia/mês/ano.");
+            } catch (ValidacaoException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
             }
         });
 
@@ -99,6 +143,12 @@ public class TelaPrincipalPaciente extends JFrame {
                 service.cancelarConsulta(loginMed, pacienteLogado.getLogin(), LocalDate.now());
                 JOptionPane.showMessageDialog(this, "Consulta cancelada. Vaga liberada para lista de espera!");
             }
+        });
+
+        btnAvaliar.addActionListener(e -> {
+            // Abre a tela de avaliação passando o serviço e o login do paciente atual
+            TelaAvaliacao telaAv = new TelaAvaliacao(service, pacienteLogado.getLogin());
+            telaAv.setVisible(true);
         });
 
         // Inicialização

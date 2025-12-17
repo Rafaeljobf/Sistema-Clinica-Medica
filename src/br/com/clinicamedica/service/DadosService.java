@@ -1,5 +1,6 @@
-package br.com.clinicamedica.database;
+package br.com.clinicamedica.service;
 
+import br.com.clinicamedica.database.ArquivoUtil;
 import br.com.clinicamedica.entities.*;
 import br.com.clinicamedica.exceptions.ArquivoException;
 import java.util.ArrayList;

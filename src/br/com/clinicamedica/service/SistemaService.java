@@ -6,6 +6,7 @@ import java.util.List;
 
 import br.com.clinicamedica.entities.*;
 import br.com.clinicamedica.exceptions.ValidacaoException;
+import br.com.clinicamedica.service.DadosService;
 
 public class SistemaService {
 
@@ -101,7 +102,7 @@ public class SistemaService {
                     break;
                 }
             }
-            br.com.clinicamedica.database.DadosService.salvarTudo(medicos, pacientes, agendamentos, avaliacoes);
+            DadosService.salvarTudo(medicos, pacientes, agendamentos, avaliacoes);
         }
     }
 
@@ -125,6 +126,8 @@ public class SistemaService {
 
         agendamento.setRealizado(true);
 
+        DadosService.salvarTudo(medicos, pacientes, agendamentos, avaliacoes);
+
         Paciente paciente = buscarPaciente(loginPaciente);
         Medico medico = buscarMedico(loginMedico);
 
@@ -139,15 +142,31 @@ public class SistemaService {
         return medico.getValorConsulta();
     }
 
-    public void avaliarConsulta(String loginMedico, String loginPaciente,
-                                int estrelas, String comentario)
+    public void avaliarConsulta(String loginMedico, String loginPaciente, int estrelas, String comentario)
             throws ValidacaoException {
+
+        boolean consultaRealizada = false;
+        for (Agendamento a : agendamentos) {
+            if (a.getLoginMedico().equals(loginMedico) &&
+                    a.getLoginPaciente().equals(loginPaciente) &&
+                    a.isRealizado()) {
+                consultaRealizada = true;
+                break;
+            }
+        }
+
+        if (!consultaRealizada) {
+            throw new ValidacaoException("Erro: Só pode avaliar o médico após a consulta ser realizada!");
+        }
 
         if (estrelas < 1 || estrelas > 5) {
             throw new ValidacaoException("Estrelas devem estar entre 1 e 5");
         }
 
         avaliacoes.add(new Avaliacao(loginMedico, loginPaciente, estrelas, comentario));
+
+        // Persistência
+        DadosService.salvarTudo(medicos, pacientes, agendamentos, avaliacoes);
     }
 
     private Medico buscarMedico(String login) throws ValidacaoException {
