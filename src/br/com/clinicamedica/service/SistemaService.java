@@ -101,6 +101,7 @@ public class SistemaService {
                     break;
                 }
             }
+            br.com.clinicamedica.database.DadosService.salvarTudo(medicos, pacientes, agendamentos, avaliacoes);
         }
     }
 
@@ -127,7 +128,7 @@ public class SistemaService {
         Paciente paciente = buscarPaciente(loginPaciente);
         Medico medico = buscarMedico(loginMedico);
 
-        if (paciente.getPlanoSaude().equalsIgnoreCase("não tenho")) {
+        if (paciente.getPlanoSaude().equalsIgnoreCase("-")) {
             return medico.getValorConsulta();
         }
 
@@ -165,5 +166,45 @@ public class SistemaService {
             }
         }
         throw new ValidacaoException("Paciente não encontrado");
+    }
+
+    public List<Medico> getMedicos() {
+        return medicos;
+    }
+
+    public void setMedicos(List<Medico> medicos) {
+        this.medicos = medicos;
+    }
+
+    public List<Paciente> getPacientes() {
+        return pacientes;
+    }
+
+    public void setPacientes(List<Paciente> pacientes) {
+        this.pacientes = pacientes;
+    }
+
+    public List<Agendamento> getAgendamentos() {
+        return agendamentos;
+    }
+
+    public void setAgendamentos(List<Agendamento> agendamentos) {
+        this.agendamentos = agendamentos;
+    }
+
+    public List<Avaliacao> getAvaliacoes() {
+        return avaliacoes;
+    }
+
+    public void setAvaliacoes(List<Avaliacao> avaliacoes) {
+        this.avaliacoes = avaliacoes;
+    }
+
+    public List<Agendamento> getListaEspera() {
+        return listaEspera;
+    }
+
+    public void setListaEspera(List<Agendamento> listaEspera) {
+        this.listaEspera = listaEspera;
     }
 }

@@ -1,0 +1,3 @@
+paciente1;123;Joao Silva;25;Unimed
+paciente2;456;Maria Oliveira;30;-
+paciente3;789;Jose Souza;40;Bradesco

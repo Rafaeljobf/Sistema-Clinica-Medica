@@ -1,0 +1,3 @@
+medico1;senha123;Dr. Ricardo;Cardiologia;Unimed;200.0
+medico2;senha456;Dra. Ana;Pediatria;Bradesco;150.0
+medico3;senha789;Dr. Bruno;Clinico Geral;-;100.0
